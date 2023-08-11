@@ -1,0 +1,10 @@
+version: '3'
+services:
+  epic-prefill:
+    build: .
+    volumes:
+      - ./Cache:/app/Cache
+      - ./Config:/app/Config
+    profiles:
+      - epic-prefill
+    network_mode: host
