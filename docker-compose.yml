@@ -1,7 +1,7 @@
 version: '3'
 services:
   steam-prefill:
-    image: kirbownz/epic-lancache-prefill:latest
+    image: kirbownz/epic-prefill-docker:latest
     volumes:
       - ./Cache:/app/Cache
       - ./Config:/app/Config
