@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 DOCKER_USER=kirbownz
-DOCKER_IMAGE_NAME=battlenet-prefill-docker
+DOCKER_IMAGE_NAME=epic-prefill-docker
 
 ARGUMENT_VERSION=${1:-"latest"}
 
