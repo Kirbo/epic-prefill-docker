@@ -1,0 +1,7 @@
+version: '3'
+services:
+  steam-prefill:
+    image: tpill90/epic-lancache-prefill:latest
+    volumes:
+      - ./Cache:/app/Cache
+      - ./Config:/app/Config
