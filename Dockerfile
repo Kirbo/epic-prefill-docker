@@ -1,9 +1,9 @@
-# docker build . --build-arg PREFILL_VERSION=latest -t kirbownz/epic-prefill-docker:latest
+# docker buildx build --build-arg PREFILL_VERSION=latest --platform linux/amd64,linux/arm64 -t kirbownz/epic-prefill-docker:latest
 # docker push kirbownz/epic-prefill-docker:latest
 # docker run -v ${PWD}/Cache:/app/Cache -v ${PWD}/Config:/app/Config --rm kirbownz/epic-prefill-docker:latest version
 
 
-FROM --platform=linux/amd64 alpine:3 AS download
+FROM alpine:3 AS download
 ARG PREFILL_VERSION=latest
 RUN \
     apk --no-cache add curl && \
@@ -18,8 +18,9 @@ RUN \
     chmod +x EpicPrefill
 
 
-FROM --platform=linux/amd64 ubuntu:22.04
-LABEL maintainer="kirbo@kirbo-designs.com"
+FROM ubuntu:22.04
+LABEL maintainer="@kirbownz"
+LABEL description="Epic Prefill Docker Image"
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1

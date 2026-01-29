@@ -2,16 +2,17 @@ stages:
   - build
 
 variables:
-  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_TLS_CERTDIR: ""        # disable automatic TLS in docker:dind
+  DOCKER_HOST: "tcp://docker:2375"
 
-build-push-docker-image-job:
+build and push docker image:
   stage: build
   image: docker:latest
   services:
-    - docker:dind
+    - name: docker:dind
+      alias: docker
   before_script:
-    - apk --no-cache add curl bash
+    - apk add --no-cache bash curl jq
   script:
-    - echo -n $CI_REGISTRY_TOKEN | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - echo -n "$CI_REGISTRY_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
     - ./build-and-push.sh
-
