@@ -1,18 +1,27 @@
 stages:
   - build
 
+# Default configuration for all jobs
+default:
+  # Prefer private runner (macos tag), fallback to shared runners if unavailable
+  # Jobs without the macos tag will use shared runners automatically
+  tags:
+    - macos
+
 variables:
   DOCKER_TLS_CERTDIR: ""        # disable automatic TLS in docker:dind
-  DOCKER_HOST: "tcp://docker:2375"
 
 build and push docker image:
   stage: build
   image: docker:latest
-  services:
-    - name: docker:dind
-      alias: docker
+  variables:
+    DOCKER_HOST: "unix:///var/run/docker.sock"  # Use local Docker for shell executor
   before_script:
     - apk add --no-cache bash curl jq
+    - export BUILDER_NAME="${DOCKER_BUILDER_NAME:-shared-ci-builder}"
+    - docker buildx inspect "${BUILDER_NAME}" >/dev/null 2>&1 || docker buildx create --name "${BUILDER_NAME}" --driver docker-container --use
   script:
     - echo -n "$CI_REGISTRY_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
     - ./build-and-push.sh
+  after_script:
+    - docker buildx rm "${BUILDER_NAME}" || true
