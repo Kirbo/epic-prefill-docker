@@ -7,9 +7,17 @@ BINARY_REPOSITORY=${DOCKER_IMAGE_NAME/prefill-docker/lancache-prefill}
 
 ARGUMENT_VERSION=${1:-"latest"}
 
-LATEST_RELEASE_LINK=$(curl -s "https://api.github.com/repos/tpill90/${BINARY_REPOSITORY}/releases/latest" | grep 'browser_' | cut -d\" -f4 | grep 'linux-x64')
+CURL_OPTS=(-s)
+[ -n "${GITHUB_TOKEN}" ] && CURL_OPTS+=(-H "Authorization: token ${GITHUB_TOKEN}")
+
+LATEST_RELEASE_LINK=$(curl "${CURL_OPTS[@]}" "https://api.github.com/repos/tpill90/${BINARY_REPOSITORY}/releases/latest" | grep 'browser_' | cut -d\" -f4 | grep 'linux-x64')
 # shellcheck disable=SC2001
 LATEST_VERSION=$(echo "${LATEST_RELEASE_LINK}" | sed 's/.*-\(.*\)-.*-.*/\1/')
+
+if [ -z "${LATEST_VERSION}" ] && [ "${ARGUMENT_VERSION}" == "latest" ]; then
+    echo "ERROR: Failed to fetch latest version from GitHub API. The API may be rate-limited."
+    exit 1
+fi
 
 BUILD_VERSION=$([ "${ARGUMENT_VERSION}" == "latest" ] && echo "${LATEST_VERSION}" || echo "${ARGUMENT_VERSION}")
 
@@ -30,7 +38,6 @@ else
     echo "Building and pushing Docker image version ${BUILD_VERSION}..."
 fi
 
-docker buildx create --driver docker-container --use || docker buildx use default
 docker buildx build \
     --build-arg "PREFILL_VERSION=${BUILD_VERSION}" \
     --push \
