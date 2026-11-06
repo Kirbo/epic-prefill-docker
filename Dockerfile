@@ -3,18 +3,22 @@
 # docker run -v ${PWD}/Cache:/app/Cache -v ${PWD}/Config:/app/Config --rm kirbownz/epic-prefill-docker:latest version
 
 
-FROM alpine:3 AS download
+# The download stage runs natively on the build host and fetches the upstream binary for the image's
+# TARGET architecture (upstream publishes a linux-x64 and a linux-arm64 zip).
+FROM --platform=$BUILDPLATFORM alpine:3 AS download
 ARG PREFILL_VERSION=latest
+ARG TARGETARCH
 RUN \
     apk --no-cache add curl && \
+    ARCH=$([ "${TARGETARCH}" = "arm64" ] && echo arm64 || echo x64) && \
     cd /tmp && \
-    LATEST_RELEASE_LINK=$(curl -s https://api.github.com/repos/tpill90/epic-lancache-prefill/releases/latest | grep 'browser_' | cut -d\" -f4 | grep 'linux-x64') && \
+    LATEST_RELEASE_LINK=$(curl -s https://api.github.com/repos/tpill90/epic-lancache-prefill/releases/latest | grep 'browser_' | cut -d\" -f4 | grep "linux-${ARCH}") && \
     LATEST_VERSION=$(echo ${LATEST_RELEASE_LINK} | sed 's/.*-\(.*\)-.*-.*/\1/') && \
     DOWNLOAD_VERSION=$([ "${PREFILL_VERSION}" == "latest" ] && echo ${LATEST_VERSION} || echo ${PREFILL_VERSION}) && \
-    DOWNLOAD_URL=$([ "${PREFILL_VERSION}" == "latest" ] && echo ${LATEST_RELEASE_LINK} || echo https://github.com/tpill90/epic-lancache-prefill/releases/download/v${DOWNLOAD_VERSION}/EpicPrefill-${DOWNLOAD_VERSION}-linux-x64.zip) && \
+    DOWNLOAD_URL=$([ "${PREFILL_VERSION}" == "latest" ] && echo ${LATEST_RELEASE_LINK} || echo https://github.com/tpill90/epic-lancache-prefill/releases/download/v${DOWNLOAD_VERSION}/EpicPrefill-${DOWNLOAD_VERSION}-linux-${ARCH}.zip) && \
     wget -O EpicPrefill.zip ${DOWNLOAD_URL} && \
     unzip EpicPrefill && \
-    mv EpicPrefill-${DOWNLOAD_VERSION}-linux-x64/EpicPrefill EpicPrefill && \
+    mv EpicPrefill-${DOWNLOAD_VERSION}-linux-${ARCH}/EpicPrefill EpicPrefill && \
     chmod +x EpicPrefill
 
 
