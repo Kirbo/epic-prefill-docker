@@ -19,8 +19,9 @@ default:
     - $MAC_DOCKER
 
 # Builds and pushes the multi-arch image when upstream has a newer release (build-and-push.sh exits
-# early otherwise). Protected branches only: the registry token is a protected variable, so a
-# branch pipeline could not push anyway.
+# early otherwise; a pipeline run with FORCE_BUILD=true rebuilds and re-pushes the current version
+# anyway). Protected branches only: the registry token is a protected variable, so a branch
+# pipeline could not push.
 #
 # No Docker socket: `docker buildx` talks to the Mac's protected BuildKit server over mutual TLS
 # (`--driver remote`; the client certificate is in the protected File variables BUILDKIT_PROTECTED_*).

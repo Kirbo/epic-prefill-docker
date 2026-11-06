@@ -33,6 +33,8 @@ logically scoped Conventional Commits. **Never push without the owner's OK.**
    buildx plugin). Newest `docker:<x.y.z>-cli` at least 7 days old; update the tag comment + digest.
 3. Rebuild nothing by hand: the next schedule (or a manual "Run pipeline" on `master`) builds only
    when upstream moved — to prove a pin change, run the pipeline and watch `docker buildx inspect --bootstrap`.
+   To ship an image change (base, Dockerfile) before the next upstream release, run the pipeline on
+   `master` with `FORCE_BUILD=true`: it rebuilds and re-pushes the current version (`<version>` + `latest`).
 
 ## Phase 3 — Verify the build (no push)
 - `glab ci lint .gitlab-ci.yml` (from the repo) — GitLab's own validation.

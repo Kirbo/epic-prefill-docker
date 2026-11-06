@@ -6,6 +6,9 @@ DOCKER_REGISTRY=${CI_REGISTRY:-docker.io}
 BINARY_REPOSITORY=${DOCKER_IMAGE_NAME/prefill-docker/lancache-prefill}
 
 ARGUMENT_VERSION=${1:-"latest"}
+# FORCE_BUILD=true rebuilds and re-pushes the version even when the registry already has it (e.g. to
+# ship a Dockerfile fix before the next upstream release). Set it on a manually run pipeline.
+FORCE_BUILD=${FORCE_BUILD:-false}
 
 CURL_OPTS=(-s)
 [ -n "${GITHUB_TOKEN}" ] && CURL_OPTS+=(-H "Authorization: token ${GITHUB_TOKEN}")
@@ -28,12 +31,15 @@ Argument version: ${ARGUMENT_VERSION}
 Latest version:   ${LATEST_VERSION}
 Building version: ${BUILD_VERSION}
 Docker version:   ${LATEST_DOCKER_IMAGE}
+Force build:      ${FORCE_BUILD}
 
 EOF
 
-if [ "${BUILD_VERSION}" == "${LATEST_DOCKER_IMAGE}" ]; then
+if [ "${BUILD_VERSION}" == "${LATEST_DOCKER_IMAGE}" ] && [ "${FORCE_BUILD}" != "true" ]; then
     echo "The Docker image is already up to date with version ${BUILD_VERSION}. Exiting."
     exit 0
+elif [ "${BUILD_VERSION}" == "${LATEST_DOCKER_IMAGE}" ]; then
+    echo "FORCE_BUILD=true: rebuilding and re-pushing Docker image version ${BUILD_VERSION}..."
 else
     echo "Building and pushing Docker image version ${BUILD_VERSION}..."
 fi
